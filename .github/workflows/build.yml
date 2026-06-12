@@ -13,12 +13,12 @@ jobs:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      - name: 💾 Create 8GB Virtual RAM (SWAP) to Prevent NDK Crash
+      - name: 💾 Create 8GB Virtual RAM (SWAP)
         run: |
-          sudo fallocate -l 8G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
+          sudo fallocate -l 8G /swapfile2 || sudo dd if=/dev/zero of=/swapfile2 bs=1M count=8192
+          sudo chmod 600 /swapfile2
+          sudo mkswap /swapfile2
+          sudo swapon /swapfile2
 
       - name: ⚙️ Setup Node.js
         uses: actions/setup-node@v4
