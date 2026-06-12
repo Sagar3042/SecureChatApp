@@ -21,17 +21,12 @@ jobs:
       - name: 📦 Install dependencies
         run: npm install
 
-      - name: 🔍 Check JS Code for Errors (Find exact bug)
-        env:
-          NODE_OPTIONS: "--max-old-space-size=8192"
-        run: npx expo export --platform android
-
       - name: 🚀 Expo Prebuild
         run: npx expo prebuild --platform android --clean
 
-      - name: 🧠 Optimize Gradle Memory
+      - name: 🧠 Balance RAM (Node: 4GB, Gradle: 2GB)
         run: |
-          echo "org.gradle.jvmargs=-Xmx6144m -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8" >> android/gradle.properties
+          echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m -Dfile.encoding=UTF-8" >> android/gradle.properties
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v3
@@ -44,7 +39,7 @@ jobs:
 
       - name: 🔨 Build Release APK
         env:
-          NODE_OPTIONS: "--max-old-space-size=8192"
+          NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
           cd android
           chmod +x ./gradlew
