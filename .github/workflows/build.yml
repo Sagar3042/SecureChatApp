@@ -17,18 +17,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.x
-          cache: 'npm'
 
       - name: 📦 Install dependencies
-        run: npm ci || npm install
+        run: npm install
 
-      - name: 🚀 Expo Prebuild (Generate Fresh Android Folder)
+      - name: 🚀 Expo Prebuild
         run: npx expo prebuild --platform android --clean
-
-      - name: 🧠 Increase Gradle & Node Memory Limit
-        run: |
-          echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
-          echo "expo.jsEngine=hermes" >> android/gradle.properties
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v3
@@ -36,20 +30,19 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: 🔑 Generate Auto Keystore
+      - name: 🔑 Generate Keystore
         run: keytool -genkey -v -keystore android/temp.keystore -storepass android -alias tempkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "C=US, O=Android, CN=App Release"
 
-      - name: 🔨 Build Release APK (Clean & Standalone)
+      - name: 🔨 Build APK
         env:
           NODE_OPTIONS: "--max-old-space-size=8192"
         run: |
           cd android
           chmod +x ./gradlew
-          ./gradlew clean
           ./gradlew assembleRelease -Pandroid.injected.signing.store.file=temp.keystore -Pandroid.injected.signing.store.password=android -Pandroid.injected.signing.key.alias=tempkey -Pandroid.injected.signing.key.password=android --stacktrace
 
-      - name: 📤 Upload APK Artifact
+      - name: 📤 Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SecureChatApp-Final-Release-APK
+          name: SecureChatApp-APK
           path: android/app/build/outputs/apk/release/app-release.apk
