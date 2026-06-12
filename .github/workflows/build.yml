@@ -24,7 +24,7 @@ jobs:
       - name: 🚀 Expo Prebuild
         run: npx expo prebuild --platform android --clean
 
-      - name: 🧠 Balance RAM (Node: 4GB, Gradle: 2GB)
+      - name: 🧠 Balance RAM Limit
         run: |
           echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m -Dfile.encoding=UTF-8" >> android/gradle.properties
 
