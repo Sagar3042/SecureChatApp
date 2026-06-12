@@ -21,6 +21,11 @@ jobs:
       - name: 📦 Install dependencies
         run: npm install
 
+      - name: 🔍 Find Exact JS Errors (Expo Export)
+        env:
+          NODE_OPTIONS: "--max-old-space-size=8192"
+        run: npx expo export --platform android
+
       - name: 🚀 Expo Prebuild
         run: npx expo prebuild --platform android --clean
 
@@ -33,13 +38,13 @@ jobs:
       - name: 🔑 Generate Keystore
         run: keytool -genkey -v -keystore android/temp.keystore -storepass android -alias tempkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "C=US, O=Android, CN=App Release"
 
-      - name: 🔨 Build APK
+      - name: 🔨 Build Release APK
         env:
           NODE_OPTIONS: "--max-old-space-size=8192"
         run: |
           cd android
           chmod +x ./gradlew
-          ./gradlew assembleRelease -Pandroid.injected.signing.store.file=temp.keystore -Pandroid.injected.signing.store.password=android -Pandroid.injected.signing.key.alias=tempkey -Pandroid.injected.signing.key.password=android --stacktrace
+          ./gradlew assembleRelease -Pandroid.injected.signing.store.file=temp.keystore -Pandroid.injected.signing.store.password=android -Pandroid.injected.signing.key.alias=tempkey -Pandroid.injected.signing.key.password=android
 
       - name: 📤 Upload Artifact
         uses: actions/upload-artifact@v4
