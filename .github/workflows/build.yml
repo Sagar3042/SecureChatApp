@@ -30,14 +30,18 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: 🔨 Build APK using Gradle (Debug)
+      - name: 🔑 Generate Auto Keystore
+        run: keytool -genkey -v -keystore android/temp.keystore -storepass android -alias tempkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "C=US, O=Android, CN=App Debug"
+
+      - name: 🔨 Build Release APK (Standalone)
         run: |
           cd android
           chmod +x ./gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease -Pandroid.injected.signing.store.file=temp.keystore -Pandroid.injected.signing.store.password=android -Pandroid.injected.signing.key.alias=tempkey -Pandroid.injected.signing.key.password=android
 
       - name: 📤 Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SecureChatApp-Debug-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: SecureChatApp-Final-Release-APK
+          path: android/app/build/outputs/apk/release/app-release.apk
+
