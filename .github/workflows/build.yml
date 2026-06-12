@@ -21,6 +21,11 @@ jobs:
       - name: 📦 Install dependencies
         run: npm install
 
+      - name: 🔍 Check JS Code for Errors (Find exact bug)
+        env:
+          NODE_OPTIONS: "--max-old-space-size=8192"
+        run: npx expo export --platform android
+
       - name: 🚀 Expo Prebuild
         run: npx expo prebuild --platform android --clean
 
@@ -37,7 +42,7 @@ jobs:
       - name: 🔑 Generate Keystore
         run: keytool -genkey -v -keystore android/temp.keystore -storepass android -alias tempkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "C=US, O=Android, CN=App Release"
 
-      - name: 🔨 Build Release APK (Skip Linting)
+      - name: 🔨 Build Release APK
         env:
           NODE_OPTIONS: "--max-old-space-size=8192"
         run: |
