@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+# গ্লোবাল মেমরি লিমিট (পুরো প্রসেসের জন্য)
+env:
+  NODE_OPTIONS: "--max-old-space-size=4096"
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,9 +28,12 @@ jobs:
       - name: 🚀 Expo Prebuild
         run: npx expo prebuild --platform android --clean
 
-      - name: 🧠 Balance RAM Limit
+      - name: 🧠 Force Single-Threaded Safe Build (Anti-Crash)
         run: |
           echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m -Dfile.encoding=UTF-8" >> android/gradle.properties
+          echo "org.gradle.parallel=false" >> android/gradle.properties
+          echo "org.gradle.daemon=false" >> android/gradle.properties
+          echo "expo.jsEngine=hermes" >> android/gradle.properties
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v3
@@ -37,13 +44,11 @@ jobs:
       - name: 🔑 Generate Keystore
         run: keytool -genkey -v -keystore android/temp.keystore -storepass android -alias tempkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "C=US, O=Android, CN=App Release"
 
-      - name: 🔨 Build Release APK
-        env:
-          NODE_OPTIONS: "--max-old-space-size=4096"
+      - name: 🔨 Build Release APK (Max Workers = 1)
         run: |
           cd android
           chmod +x ./gradlew
-          ./gradlew assembleRelease -x lintVitalRelease -Pandroid.injected.signing.store.file=temp.keystore -Pandroid.injected.signing.store.password=android -Pandroid.injected.signing.key.alias=tempkey -Pandroid.injected.signing.key.password=android --no-daemon
+          ./gradlew assembleRelease -x lintVitalRelease -Pandroid.injected.signing.store.file=temp.keystore -Pandroid.injected.signing.store.password=android -Pandroid.injected.signing.key.alias=tempkey -Pandroid.injected.signing.key.password=android --no-daemon --max-workers=1
 
       - name: 📤 Upload Artifact
         uses: actions/upload-artifact@v4
