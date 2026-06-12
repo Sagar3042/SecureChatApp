@@ -17,15 +17,18 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.x
+          cache: 'npm'
 
       - name: 📦 Install dependencies
-        run: npm install
+        run: npm ci || npm install
 
-      - name: 🔧 Fix Expo Dependencies
-        run: npx expo install --fix
-
-      - name: 🚀 Expo Prebuild (Clean)
+      - name: 🚀 Expo Prebuild (Generate Fresh Android Folder)
         run: npx expo prebuild --platform android --clean
+
+      - name: 🧠 Increase Gradle & Node Memory Limit
+        run: |
+          echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
+          echo "expo.jsEngine=hermes" >> android/gradle.properties
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v3
@@ -36,12 +39,13 @@ jobs:
       - name: 🔑 Generate Auto Keystore
         run: keytool -genkey -v -keystore android/temp.keystore -storepass android -alias tempkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "C=US, O=Android, CN=App Release"
 
-      - name: 🔨 Build Release APK (Standalone)
+      - name: 🔨 Build Release APK (Clean & Standalone)
         env:
           NODE_OPTIONS: "--max-old-space-size=8192"
         run: |
           cd android
           chmod +x ./gradlew
+          ./gradlew clean
           ./gradlew assembleRelease -Pandroid.injected.signing.store.file=temp.keystore -Pandroid.injected.signing.store.password=android -Pandroid.injected.signing.key.alias=tempkey -Pandroid.injected.signing.key.password=android --stacktrace
 
       - name: 📤 Upload APK Artifact
